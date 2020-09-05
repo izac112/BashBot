@@ -1,15 +1,15 @@
 ![BashBot](https://i.imgur.com/oHESoVW.png)
 
-![Python 3.5](https://img.shields.io/badge/python-3.5-orange.svg) ![Discord.py](https://img.shields.io/badge/discord.py-0.16.11-green.svg) ![Discord.py](https://img.shields.io/badge/pyte-0.7.0_dev-blue.svg)
-
 BashBot is a Discord bot that provides terminal access via chat.
+
+**This bot is in work in progress state**\
+There are few features missing such as help command. List of commands is available in readme below
 
 ![](https://i.imgur.com/seKhece.png)
 
 ## Features
 * Interactive. Works with `nano`, `htop` etc
 * Reactions can be used as input keys
-* Permissions system (per channel/server/group)
 * Open/Close/Select/Freeze terminal sessions
 * Run terminal session as different user
 
@@ -24,35 +24,9 @@ These instructions will get you a bot installed and running quickly
 
 ### Installing
 
-In order to install BashBot you have to clone this repository
-
+Type following commands to install dependencies:
 ```
-git clone https://github.com/Adikso/BashBot.git
-cd BashBot
-```
-
-Then type following command to install:
-```
-sudo python setup.py install
-```
-(Your settings and permissions files will be in ~/.bashbot)
-
-**or install dependencies manually and run bot from directory**
-
-Type following commands to install libraries:
-```
-pip3 install pyte
-pip3 install discord.py
-```
-(Your settings and permissions files will be in cloned repository directory)
-
-**Python 3.7**
-
-If you are using python 3.7 you should upgrade to discord.py "async" branch, upgrade websockets and aiohttp manually.
-```
-pip3 install -U https://github.com/Rapptz/discord.py/archive/async.zip#egg=discord.py
-pip3 install websockets --upgrade
-pip3 install aiohttp --upgrade
+pip install -r requirements.txt
 ```
 
 ### Running
@@ -70,17 +44,7 @@ And run
 python bashbot.py
 ```
 
-or (if installed with `setup.py`)
-```
-bashbot
-```
-
 Now BashBot should start and show later instructions
-
-You can set 'owner' setting to your id to grant yourself all permissions
-
-### Security
-If you want your BashBot to be secure and want to use permissions system, you have to fill `user` field in `settings.json` with user credentials for user that will run terminal sessions and block read and write access to BashBot files and configuration files from that user. Otherwise users will be able to modify files such as `permissions.json` or stole your bot `token` from `settings.json` using terminal tools such as `nano`, `vim`, `cat` etc.
 
 ### Commands
 (Every command have to start with prefix. By default it's "$". You can change it in settings. More information about commands after typing "$.help")
@@ -88,18 +52,17 @@ If you want your BashBot to be secure and want to use permissions system, you ha
 Command | Alias | Usage | Description 
 ------------ | ------------- | ------------- | ------------- 
 .about |-|.about|Shows information about project
-.help |-|.help [name] | Shows help
-.settings |.setting|.settings <name> [value] or .settings save | Get/Set bot settings
-.permission | .p, .permissions |.permission <user> <permission_name> [new_value] | Manage permissions
 .open | .o | .open [name] | Opens new terminal session
-.close | .c | .close [name] | Closes terminal session
-.freeze | .f | .freeze [name] | Freezes terminal session
+.close | .c | .close | Closes current terminal session
+.freeze | .f | .freeze | Freezes current terminal session
 .here | .h | .here | Moves selected terminal below the user message
 .select | .s | .select [name] | Sets terminal as selected
 .controls |-|.controls add/remove [emoji] [content..] | Manages terminal controls
 .repeat | .r | .repeat <n> <string..> | Repeats string n times and sends to the current terminal session
-.sessions | .session | .sessions or .sessions kill <name> or .sessions killall | Manage sessions
 .rename | - | .rename <new_name> | Changes session name
+.submit | - | .submit | Toggles auto submit mode
+.macro | .m | .macro <macro_name> | Executes macro from "macros" directory
+.interactive | .i | .i | Enables interactive mode where all messages are sent to terminal
 
 ### Shortcuts
 Shortcut | Description
@@ -138,7 +101,7 @@ See also the list of [contributors](https://github.com/Adikso/BashBot/contributo
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the GNU License - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
 

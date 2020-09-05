@@ -1,71 +1,77 @@
-import json
-
 import os
+import toml
 from pathlib import Path
 
-import pkg_resources
+from bashbot.factory import SingletonDecorator
 
 
 class Settings:
+    DEFAULT_CONFIG_PATH = 'config.toml'
+    DEFAULT_MACRO_PATH = 'macros'
 
-    def __init__(self, filename):
-        self.settings = {}
-        self.filename = filename
+    def __init__(self):
+        self.config: dict = {}
+        self.macros: dict = {}
 
-    def get(self, key):
-        if key not in list(self.settings.keys()):
-            return None
+    def load(self, path=DEFAULT_CONFIG_PATH):
+        if os.path.exists(path):
+            with open(path, 'r') as file:
+                self.config = toml.load(file)
 
-        return self.settings[key]
+        # [commands]
+        self.add_default('commands.prefixes', ['$', '.bash'])
 
-    def set(self, key, value):
-        self.settings[key] = value
+        # [discord]
+        self.add_default('discord.token', 'TOKEN_HERE')
+        self.add_default('discord.presence', '{prefix}help')
 
-    def load(self, filename=None):
-        try:
-            settings_file = open(filename if filename else self.filename, "r")
-            self.settings = json.loads(settings_file.read())
-            settings_file.close()
-        except (OSError, IOError):
-            print("Failed to load settings %s" % (filename if filename else self.filename))
-            self.copy_default(home=False)
-            return
+        # [terminal]
+        self.add_default('terminal.template', '`| TTY #{name} | {state} |`\n```{content}```')
+        self.add_default('terminal.shell_path', '/bin/bash')
+        self.add_default('terminal.su_path', '/bin/su')
 
-        print("Loaded `%s`" % (filename if filename else self.filename))
+        # [terminal.user]
+        self.add_default('terminal.user.login_as_other_user', False)
+        self.add_default('terminal.user.username', 'myuser')
+        self.add_default('terminal.user.password', 'mypassword')
 
-    def save(self, filename=None):
-        try:
-            settings_file = open(filename if filename else self.filename, "w+")
+        self.save()
 
-            for key in list(self.settings.keys()):
-                if key.startswith("_"):
-                    self.settings.pop(key, None)
+    def load_macros(self, path=DEFAULT_MACRO_PATH):
+        os.makedirs(path, exist_ok=True)
 
-            settings_file.write(json.dumps(self.settings, sort_keys=True, indent=4, separators=(',', ': ')))
-            settings_file.close()
-        except (OSError, IOError):
-            print("Failed to write settings to file %s" % (filename if filename else self.filename))
-            return False
+        for filename in os.listdir(path):
+            if filename.endswith('.txt'):
+                self.macros[filename[:-4]] = Path(path + '/' + filename).read_text()
 
-        print("Saved `%s`" % (filename if filename else self.filename))
+    def get(self, config_path, default=None):
+        current_node = self.config
 
-        return True
+        # Follow dot path
+        for node_name in config_path.split('.'):
+            if node_name not in current_node.keys():
+                return default
 
-    def copy_default(self, home):
-        if home:
-            filename = os.path.join(str(Path.home()), ".bashbot", self.filename)
+            current_node = current_node[node_name]
 
-            if not os.path.exists(filename):
-                self.settings = json.loads(pkg_resources.resource_string('bashbot', self.filename.replace(".json", ".default.json")).decode())
-                self.filename = filename
-                self.create_home_dir()
-                self.save()
-            else:
-                self.filename = filename
-                self.load()
-        else:
-            self.load(os.path.join("bashbot", self.filename.replace(".json", ".default.json")))
-            self.save()
+        return current_node or default
 
-    def create_home_dir(self):
-        os.makedirs(os.path.dirname(self.filename), exist_ok=True)
+    def add_default(self, path, value):
+        current_node = self.config
+        parts = path.split('.')
+
+        for node_name in parts[:-1]:
+            if node_name not in current_node.keys():
+                current_node[node_name] = {}
+
+            current_node = current_node[node_name]
+
+        if not parts[-1] in current_node:
+            current_node[parts[-1]] = value
+
+    def save(self, path=DEFAULT_CONFIG_PATH):
+        with open(path, 'w') as file:
+            toml.dump(self.config, file)
+
+
+settings = SingletonDecorator(Settings)
